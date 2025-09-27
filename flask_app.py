@@ -104,6 +104,9 @@ def upload():
         cv2.cvtColor(annot, cv2.COLOR_BGR2RGB)
     )
 
+    if img.width > img.height:
+        img = img.rotate(90, expand=True)
+
     result, = results
 
     num_detections = len(result.boxes)
