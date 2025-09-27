@@ -91,7 +91,7 @@ def upload():
 
     results = model.predict(
         img,
-        conf=0.5,
+        conf=0.025,
         project="test_overfitting",
         name="training_image_test"
     )
