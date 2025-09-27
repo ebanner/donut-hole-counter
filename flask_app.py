@@ -18,14 +18,14 @@ def index():
     <!doctype html>
     <html>
       <body style="font-family: system-ui, -apple-system, sans-serif; padding: 16px;">
-        <h1>Dunkin' Munchkin Counter</h1>
+        <h1>Munchkin Counter</h1>
 
         <form id="upload-form">
           <input type="file" name="file" id="file" accept="image/*" required />
           <button type="submit">Upload</button>
         </form>
 
-        <div id="count-container" style="margin-top:12px; display:none;">
+        <div id="count-container" style="margin-top:30px; display:none;">
           <strong>Munchkins:</strong> <span id="count">–</span>
         </div>
 
