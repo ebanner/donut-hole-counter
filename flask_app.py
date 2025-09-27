@@ -9,7 +9,7 @@ from ultralytics import YOLO
 app = Flask(__name__)
 
 # Load your trained model (adjust the path if needed)
-model = YOLO("/Users/edward/Code/dunkin-munchkin-counter/runs/detect/train2/weights/best.pt")
+model = YOLO("models/best.pt")
 
 
 @app.route("/", methods=["GET"])
@@ -120,5 +120,5 @@ def upload():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5001, debug=True)
 
