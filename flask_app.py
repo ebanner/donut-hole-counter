@@ -1,21 +1,96 @@
-from flask import Flask, send_file, make_response
+from flask import Flask, request, send_file, make_response
 from PIL import Image
 import io
+import cv2
 
 from ultralytics import YOLO
-import cv2
-from PIL import Image
-from IPython.display import display
 
-
+# Initialize Flask app
 app = Flask(__name__)
 
+# Load your trained model (adjust the path if needed)
 model = YOLO("/Users/edward/Code/dunkin-munchkin-counter/runs/detect/train2/weights/best.pt")
 
-@app.route("/image")
-def get_image():
+
+@app.route("/", methods=["GET"])
+def index():
+    return """
+    <!doctype html>
+    <html>
+      <body style="font-family: system-ui, -apple-system, sans-serif; padding: 16px;">
+        <h1>Dunkin' Munchkin Counter</h1>
+
+        <form id="upload-form">
+          <input type="file" name="file" id="file" accept="image/*" required />
+          <button type="submit">Upload</button>
+        </form>
+
+        <div id="count-container" style="margin-top:12px; display:none;">
+          <strong>Munchkins:</strong> <span id="count">–</span>
+        </div>
+
+        <div id="preview-wrap" style="margin-top:16px; display:none;">
+          <img id="preview" style="max-width:100%; border:1px solid #ccc;" />
+        </div>
+
+        <script>
+          const form = document.getElementById("upload-form");
+          const previewWrap = document.getElementById("preview-wrap");
+          const preview = document.getElementById("preview");
+          const countContainer = document.getElementById("count-container");
+          const countSpan = document.getElementById("count");
+
+          form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const fileInput = document.getElementById("file");
+            if (!fileInput.files.length) return;
+
+            const fd = new FormData();
+            fd.append("file", fileInput.files[0]);
+
+            const resp = await fetch("/upload", { method: "POST", body: fd });
+            if (!resp.ok) {
+              alert("Upload failed");
+              return;
+            }
+
+            // Get detection count from header
+            const dets = resp.headers.get("X-Detections");
+
+            const blob = await resp.blob();
+            const url = URL.createObjectURL(blob);
+
+            if (preview.dataset.url) URL.revokeObjectURL(preview.dataset.url);
+            preview.src = url;
+            preview.dataset.url = url;
+
+            // Show image + count
+            previewWrap.style.display = "block";
+            countContainer.style.display = "block";
+            countSpan.textContent = dets ?? "0";
+          });
+        </script>
+      </body>
+    </html>
+    """
+
+@app.route("/upload", methods=["POST"])
+def upload():
+    """
+    Echo the uploaded image back as the response.
+    """
+    f = request.files.get("file")
+    if not f:
+        return "No file part", 400
+
+    # 1) Read as PIL
+    img = Image.open(f.stream)
+    img.load()
+    if img.mode not in ("RGB", "L"):
+        img = img.convert("RGB")  # e.g., convert RGBA/CMYK -> RGB
+
     results = model.predict(
-        source='data/train/images/2dd1ddf2-IMG_1326.jpeg',
+        img,
         conf=0.5,
         project="test_overfitting",
         name="training_image_test"
@@ -43,42 +118,7 @@ def get_image():
     resp.headers["X-Detections"] = str(num_detections)
     return resp
 
-    return send_file(buf, mimetype="image/png")
-
-
-@app.route("/")
-def index():
-    return """
-    <!doctype html>
-    <html>
-      <body style="font-family: system-ui, -apple-system, sans-serif;">
-        <button onclick="loadImage()">Count Munchkins</button>
-        <div id="count-container" style="margin-top:12px; display:none;">
-            <strong>Munchkins:</strong> <span id="count">–</span>
-        </div>
-        <div style="margin-top:12px">
-          <img id="preview" style="max-width:100%; border:1px solid #ccc;" />
-        </div>
-        <script>
-          async function loadImage() {
-            const resp = await fetch("/image?" + Date.now());
-            const count = resp.headers.get("X-Detections");
-            const blob = await resp.blob();
-            const url = URL.createObjectURL(blob);
-
-            document.getElementById("count").textContent = count ?? "0";
-            document.getElementById("count-container").style.display = "block";
-
-            const img = document.getElementById("preview");
-            // Revoke previous object URL if any
-            if (img.dataset.url) URL.revokeObjectURL(img.dataset.url);
-            img.src = url;
-            img.dataset.url = url;
-          }
-        </script>
-      </body>
-    </html>
-    """
 
 if __name__ == "__main__":
     app.run(debug=True)
+
