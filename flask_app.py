@@ -16,63 +16,149 @@ model = YOLO("models/best.pt")
 def index():
     return """
     <!doctype html>
-    <html>
-      <body style="font-family: system-ui, -apple-system, sans-serif; padding: 16px;">
+    <html lang="en">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>Munchkin Counter</title>
+      <style>
+        :root {
+          --pad: 16px;
+        }
+        * { box-sizing: border-box; }
+        body {
+          font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+          margin: 0;
+          padding: var(--pad);
+          line-height: 1.3;
+          background: #fff;
+          color: #111;
+        }
+        .container {
+          max-width: 720px;
+          margin: 0 auto;
+        }
+        h1 {
+          font-size: 1.9rem;
+          margin: 0 0 0.75rem 0;
+          text-align: left;
+        }
+        form#upload-form {
+          display: flex;
+          gap: 0.75rem;
+          align-items: center;
+          flex-wrap: wrap;
+          margin-bottom: 0.75rem;
+        }
+        input[type="file"] {
+          font-size: 1rem;
+          padding: 0.65rem;
+          border: 1px solid #d0d0d0;
+          border-radius: 8px;
+          background: #fafafa;
+          max-width: 100%;
+        }
+        button {
+          font-size: 1rem;
+          padding: 0.7rem 1.1rem;
+          border-radius: 8px;
+          border: 1px solid #0a62ff;
+          background: #1367ff;
+          color: #fff;
+        }
+        #count-container {
+          margin: 0.5rem 0 0.75rem 0;
+          font-weight: 700;
+          font-size: 1.5rem;
+        }
+        #preview-wrap {
+          margin-top: 0.5rem;
+        }
+        img#preview {
+          max-width: 100%;
+          height: auto;
+          border-radius: 10px;
+          border: 1px solid #e1e1e1;
+          display: block;
+        }
+        /* Rotate wide images for mobile viewing */
+        .rotate90 {
+          transform: rotate(90deg);
+          transform-origin: center center;
+          /* Ensure it fits vertically after rotation */
+          max-height: 85vh;
+          width: auto;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
         <h1>Munchkin Counter</h1>
 
         <form id="upload-form">
-          <input type="file" name="file" id="file" accept="image/*" required />
+          <input type="file" name="file" id="file" accept="image/*" required>
           <button type="submit">Upload</button>
         </form>
 
-        <div id="count-container" style="margin-top:30px; display:none;">
-          <strong>Munchkins:</strong> <span id="count">–</span>
+        <div id="count-container" style="display:none;">
+          Munchkins: <span id="count">–</span>
         </div>
 
-        <div id="preview-wrap" style="margin-top:16px; display:none;">
-          <img id="preview" style="max-width:100%; border:1px solid #ccc;" />
+        <div id="preview-wrap" style="display:none;">
+          <img id="preview" alt="Detection result">
         </div>
+      </div>
 
-        <script>
-          const form = document.getElementById("upload-form");
-          const previewWrap = document.getElementById("preview-wrap");
-          const preview = document.getElementById("preview");
-          const countContainer = document.getElementById("count-container");
-          const countSpan = document.getElementById("count");
+      <script>
+        const form = document.getElementById("upload-form");
+        const fileInput = document.getElementById("file");
+        const previewWrap = document.getElementById("preview-wrap");
+        const preview = document.getElementById("preview");
+        const countContainer = document.getElementById("count-container");
+        const countSpan = document.getElementById("count");
+        const ROTATE_AR_THRESHOLD = 1.3;
 
-          form.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const fileInput = document.getElementById("file");
-            if (!fileInput.files.length) return;
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const fd = new FormData();
+          if (!fileInput.files.length) return;
+          fd.append("file", fileInput.files[0]);
 
-            const fd = new FormData();
-            fd.append("file", fileInput.files[0]);
+          // ✅ fixed: post to /upload instead of /predict
+          const res = await fetch("/upload", { method: "POST", body: fd });
+          if (!res.ok) {
+            alert("Upload failed");
+            return;
+          }
 
-            const resp = await fetch("/upload", { method: "POST", body: fd });
-            if (!resp.ok) {
-              alert("Upload failed");
-              return;
-            }
+          // right now /upload returns an image file, not JSON
+          // so just display it directly
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
 
-            // Get detection count from header
-            const dets = resp.headers.get("X-Detections");
+          preview.classList.remove("rotate90");
+          preview.src = url;
+          previewWrap.style.display = "block";
 
-            const blob = await resp.blob();
-            const url = URL.createObjectURL(blob);
-
-            if (preview.dataset.url) URL.revokeObjectURL(preview.dataset.url);
-            preview.src = url;
-            preview.dataset.url = url;
-
-            // Show image + count
-            previewWrap.style.display = "block";
+          // read count from response header
+          const count = res.headers.get("X-Detections");
+          if (count !== null) {
+            countSpan.textContent = count;
             countContainer.style.display = "block";
-            countSpan.textContent = dets ?? "0";
-          });
-        </script>
-      </body>
+          }
+
+          preview.onload = () => {
+            const ar = preview.naturalWidth / preview.naturalHeight;
+            if (ar > ROTATE_AR_THRESHOLD) {
+              preview.classList.add("rotate90");
+            }
+          };
+        });
+      </script>
+    </body>
     </html>
     """
+
 
 @app.route("/upload", methods=["POST"])
 def upload():
