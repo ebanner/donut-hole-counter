@@ -1,4 +1,4 @@
-# donut-hole-counter
+# 🍩 donut-hole-counter
 
 Count donut holes with a YOLO model.
 
