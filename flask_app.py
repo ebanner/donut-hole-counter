@@ -20,7 +20,7 @@ def index():
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title>Munchkin Counter</title>
+      <title>Donut Hole Counter</title>
       <style>
         :root {
           --pad: 16px;
@@ -93,15 +93,15 @@ def index():
     </head>
     <body>
       <div class="container">
-        <h1>Munchkin Counter</h1>
+        <h1>Donut Hole Counter</h1>
 
         <form id="upload-form">
           <input type="file" name="file" id="file" accept="image/*" required>
-          <button type="submit">Upload</button>
+          <button type="submit">Count!</button>
         </form>
 
         <div id="count-container" style="display:none;">
-          Munchkins: <span id="count">–</span>
+          Donut Holes: <span id="count">–</span>
         </div>
 
         <div id="preview-wrap" style="display:none;">
