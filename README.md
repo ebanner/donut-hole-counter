@@ -1,5 +1,3 @@
-# dunkin-munchkin-counter
+# donut-hole-counter
 
-![Foo](images/app.png)
-
-![Foo](images/494099177-3e6f0fbc-9714-47d3-bbc5-ba514d346a48.png)
+<img width="765" height="729" alt="Screenshot 2025-10-25 at 10 05 06 AM" src="https://github.com/user-attachments/assets/157585ff-775d-4aa1-9f84-60ccad4896c4" />
