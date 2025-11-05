@@ -1,3 +1,5 @@
+# run with ipython
+
 from pathlib import Path
 
 import yaml
@@ -11,6 +13,12 @@ PROJECT_DIR = "/Users/edward/Downloads/project-1-at-2025-11-03-21-25-1dab8c86"
 
 
 if __name__ == '__main__':
+    #
+    # Delete existing data
+    #
+    get_ipython().system('rm -f {train,val,test}/images/*')
+    get_ipython().system('rm -f {train,val,test}/labels/*')
+
     #
     # Strip EXIF data
     #
