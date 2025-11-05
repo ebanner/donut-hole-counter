@@ -9,7 +9,7 @@ from tqdm import tqdm
 with open("data.yaml", "r") as f:
     DATA = yaml.safe_load(f)
 
-PROJECT_DIR = "/Users/edward/Downloads/project-1-at-2025-11-03-21-25-1dab8c86"
+PROJECT_DIR = "/Users/edward/Downloads/project-1-at-2025-11-05-21-30-1dab8c86"
 
 
 if __name__ == '__main__':
@@ -49,7 +49,7 @@ if __name__ == '__main__':
     #
     # Copy Test Examples
     #
-    for stem in tqdm(data['test']):
-        get_ipython().system('cp {project_dir}/images/{stem}.jpeg test/images')
-        get_ipython().system('cp {project_dir}/labels/{stem}.txt test/labels')
+    for stem in tqdm(DATA['test']):
+        get_ipython().system('cp {PROJECT_DIR}/images/{stem}.jpeg test/images')
+        get_ipython().system('cp {PROJECT_DIR}/labels/{stem}.txt test/labels')
 
