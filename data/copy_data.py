@@ -53,3 +53,8 @@ if __name__ == '__main__':
         get_ipython().system('cp {PROJECT_DIR}/images/{stem}.jpeg test/images')
         get_ipython().system('cp {PROJECT_DIR}/labels/{stem}.txt test/labels')
 
+    #
+    # Delete weird image
+    #
+    get_ipython().system('rm -f val/images/4b03b9ad-IMG_1353.jpeg')
+    get_ipython().system('rm -f val/labels/4b03b9ad-IMG_1353.txt')
