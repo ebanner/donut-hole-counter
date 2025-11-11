@@ -177,7 +177,7 @@ def upload():
 
     results = model.predict(
         img,
-        conf=0.025,
+        conf=0.3571, # 👀 found via cross validation
         project="test_overfitting",
         name="training_image_test"
     )
